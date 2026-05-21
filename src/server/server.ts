@@ -39,6 +39,28 @@ async function onRequest(
     return;
   }
 
+  // ── MLB Stats API proxy ─────────────────────────────────────────────────
+  const urlObj = new URL(url, "http://localhost");
+  const pathname = urlObj.pathname;
+  if (pathname === "/api/schedule") {
+    await onSchedule(urlObj, rsp);
+    return;
+  }
+  if (pathname.startsWith("/api/game/")) {
+    await onGame(pathname.slice("/api/game/".length), rsp);
+    return;
+  }
+  if (pathname.startsWith("/api/logo/")) {
+    const teamId = pathname.slice("/api/logo/".length).replace(/\.svg$/, "");
+    await onLogo(teamId, rsp);
+    return;
+  }
+  if (pathname.startsWith("/api/headshot/")) {
+    const playerId = pathname.slice("/api/headshot/".length).replace(/\.\w+$/, "");
+    await onHeadshot(playerId, rsp);
+    return;
+  }
+
   const endpoint = url as ApiEndpoint;
 
   let body: ApiResponse | UiResponse | ErrorResponse;
@@ -162,4 +184,104 @@ async function readJSON<T>(req: IncomingMessage): Promise<T> {
   req.on("data", (chunk) => chunks.push(chunk));
   await once(req, "end");
   return JSON.parse(`${Buffer.concat(chunks)}`);
+}
+
+async function onSchedule(
+  urlObj: URL,
+  rsp: ServerResponse,
+): Promise<void> {
+  const date = urlObj.searchParams.get("date");
+  if (!date) {
+    writeJSON<ErrorResponse>(
+      400,
+      { error: "Missing date param", status: 400 },
+      rsp,
+    );
+    return;
+  }
+  try {
+    const r = await fetch(
+      `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}`,
+    );
+    const data = (await r.json()) as PartialJsonValue;
+    writeJSON<PartialJsonValue>(200, data, rsp);
+  } catch (e) {
+    writeJSON<ErrorResponse>(500, { error: String(e), status: 500 }, rsp);
+  }
+}
+
+async function onGame(pk: string, rsp: ServerResponse): Promise<void> {
+  try {
+    const r = await fetch(
+      `https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`,
+    );
+    const data = (await r.json()) as PartialJsonValue;
+    writeJSON<PartialJsonValue>(200, data, rsp);
+  } catch (e) {
+    writeJSON<ErrorResponse>(500, { error: String(e), status: 500 }, rsp);
+  }
+}
+
+async function onLogo(teamId: string, rsp: ServerResponse): Promise<void> {
+  if (!/^\d+$/.test(teamId)) {
+    writeJSON<ErrorResponse>(
+      400,
+      { error: "Invalid team ID", status: 400 },
+      rsp,
+    );
+    return;
+  }
+  try {
+    const r = await fetch(
+      `https://www.mlbstatic.com/team-logos/${teamId}.svg`,
+    );
+    if (!r.ok) {
+      console.error(`Logo upstream ${teamId}: ${r.status} ${r.statusText}`);
+      writeJSON<ErrorResponse>(
+        404,
+        { error: `Upstream ${r.status}`, status: 404 },
+        rsp,
+      );
+      return;
+    }
+    const svg = await r.text();
+    writeJSON<PartialJsonValue>(200, { svg } as PartialJsonValue, rsp);
+  } catch (e) {
+    console.error(`onLogo error for ${teamId}:`, e);
+    writeJSON<ErrorResponse>(500, { error: String(e), status: 500 }, rsp);
+  }
+}
+
+async function onHeadshot(playerId: string, rsp: ServerResponse): Promise<void> {
+  if (!/^\d+$/.test(playerId)) {
+    writeJSON<ErrorResponse>(
+      400,
+      { error: "Invalid player ID", status: 400 },
+      rsp,
+    );
+    return;
+  }
+  try {
+    const url =
+      `https://img.mlbstatic.com/mlb-photos/image/upload/` +
+      `d_people:generic:headshot:67:current.png/w_213,q_auto:best/` +
+      `v1/people/${playerId}/headshot/67/current`;
+    const r = await fetch(url);
+    if (!r.ok) {
+      console.error(`Headshot upstream ${playerId}: ${r.status}`);
+      writeJSON<ErrorResponse>(
+        404,
+        { error: `Upstream ${r.status}`, status: 404 },
+        rsp,
+      );
+      return;
+    }
+    const buf = Buffer.from(await r.arrayBuffer());
+    const mime = r.headers.get("content-type") || "image/png";
+    const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
+    writeJSON<PartialJsonValue>(200, { src: dataUrl } as PartialJsonValue, rsp);
+  } catch (e) {
+    console.error(`onHeadshot error for ${playerId}:`, e);
+    writeJSON<ErrorResponse>(500, { error: String(e), status: 500 }, rsp);
+  }
 }
