@@ -1,86 +1,528 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  color: #000000;
+/* ════════════════════════════════════════════════════════════════════
+   MLB SCORES — splash.css
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+
+:root {
+  /* Color */
+  --bg-deep: #01091a;
+  --bg-card: #0a1828;
+  --bg-elev-1: rgba(255, 255, 255, 0.04);
+  --bg-elev-2: rgba(255, 255, 255, 0.08);
+  --accent: #bf0d3d;
+  --accent-dim: rgba(191, 13, 61, 0.55);
+  --accent-glow: rgba(191, 13, 61, 0.18);
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-faint: rgba(255, 255, 255, 0.25);
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-base: 16px;
+  --space-lg: 20px;
+  --space-xl: 28px;
+  --space-2xl: 40px;
+
+  /* Typography */
+  --font-sans: 'Rubik', system-ui, -apple-system, sans-serif;
+  --font-display: 'Oswald', 'Rubik', sans-serif;
+  --font-mono: 'DM Mono', 'SF Mono', Consolas, monospace;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
-.app {
+/* ── Reset ─────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base body / card ──────────────────────────────────────────── */
+
+body.scorebug {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 100vh;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Loading state ─────────────────────────────────────────────── */
+
+.loading-state {
+  padding: 48px 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+/* ── Card layout ───────────────────────────────────────────────── */
+
+.scorebug-content {
   display: flex;
-  position: relative;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  gap: 16px;
 }
 
-.snoo {
+.scorebug-top {
+  padding: var(--space-base) var(--space-lg) 0;
+}
+
+/* ── Header meta strip ─────────────────────────────────────────── */
+
+.meta-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: var(--space-base);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.venue {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+
+.network {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--bg-elev-1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+.network:empty { display: none; }
+
+/* ── Score row ─────────────────────────────────────────────────── */
+
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-base);
+  padding: var(--space-lg) 0;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.team-logo {
+  width: 64px;
+  height: 64px;
   object-fit: contain;
-  width: 50%;
-  max-width: 250px;
-  margin: 0 auto;
+  flex-shrink: 0;
 }
 
-.content {
+.team-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 }
 
-.title {
-  font-size: 1.5em;
-  font-weight: bold;
+.team-name { display: none; }
+
+.team-record {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+/* ── Status block (scores + center) ────────────────────────────── */
+
+.status-block {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 var(--space-xs);
+}
+
+.status-score {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.status-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+}
+
+.status-badge {
+  background: var(--accent);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+.status-badge:empty { display: none; }
+
+.status-inning {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.status-count {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+.count-num {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ── Linescore (compact, Chrome-ext opacity treatment) ─────────── */
+
+.linescore {
+  padding: var(--space-md) var(--space-lg) var(--space-lg);
+}
+.linescore:empty { display: none; }
+
+.linescore-compact {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: var(--font-sans);
+}
+
+.linescore-compact th,
+.linescore-compact td {
+  padding: 5px 3px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.linescore-compact thead th {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.linescore-compact .ls-team-col {
+  text-align: left;
+  width: 64px;
+  padding-left: var(--space-xs);
+  white-space: nowrap;
+}
+
+.linescore-compact .ls-team-logo {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: 6px;
+  object-fit: contain;
+}
+
+.linescore-compact .ls-team-abbr {
+  vertical-align: middle;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.06em;
+}
+
+.linescore-compact tbody tr.ls-row-away td {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Zeros subtly faded everywhere */
+.linescore-compact .ls-zero {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.linescore-compact .ls-nonzero {
+  color: var(--text-primary);
+}
+
+.linescore-compact .ls-empty {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.linescore-compact .ls-current {
+  background: transparent;
+}
+
+/* Totals slightly bolder */
+.linescore-compact .ls-total {
+  font-weight: 800;
+}
+
+/* Losing team (final only): inning + R + H cells get soft fade.
+   Team col and E column are excluded. */
+.linescore-compact .ls-row-loser td:not(.ls-team-col):not(.ls-e-value) {
+  opacity: 0.55;
+}
+
+/* E column header + values (incl. 0): signature faded red */
+.linescore-compact .ls-e-header,
+.linescore-compact .ls-e-value {
+  color: var(--accent-dim);
+}
+
+/* ── Tab content panes ─────────────────────────────────────────── */
+
+.tab-content {
+  display: none;
+  padding: var(--space-base) var(--space-lg);
+  min-height: 80px;
+}
+
+.tab-content-active { display: block; }
+
+.placeholder {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.state-pane { padding: 4px 0; }
+
+/* ── Pregame content pane ──────────────────────────────────────── */
+
+.pregame-pitchers {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: var(--space-base);
+  padding: var(--space-base) 0 var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pregame-pitchers-spacer {
+  min-width: 72px;
+}
+
+.pregame-pitcher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   text-align: center;
 }
 
-.description {
-  font-size: 1em;
-  text-align: center;
-  color: #5c6c74;
+.pregame-team-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  opacity: 0.85;
+  margin-bottom: 2px;
 }
 
-.code {
-  background-color: #e5ebee;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-.start-button {
-  background-color: #d93900;
-  color: #ffffff;
+.pregame-headshot-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 2px solid var(--border-medium);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
-  border: none;
-  padding: 6px 16px;
-  height: 28px;
-  font-size: 1.1em;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  margin-bottom: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
-.footer {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+.pregame-headshot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pregame-pitcher-label {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pregame-pitcher-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+
+.pregame-pitcher-stats {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.pregame-info {
   display: flex;
-  gap: 12px;
-  font-size: 0.8em;
-  color: #666666;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: var(--space-lg);
 }
 
-.docs-link {
+.pregame-info-label {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pregame-info-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Tab bar — bottom footer nav (icon-only highlight) ─────────── */
+
+.tab-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 8px var(--space-md) var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
   cursor: pointer;
+  transition: color 0.15s ease;
 }
 
-.divider {
-  color: rgba(0, 0, 0, 0.1);
+.tab svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  stroke: currentColor;
 }
+
+.tab span {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tab:hover,
+.tab.tab-active {
+  color: var(--accent);
+}
+
+/* ── State: pregame ────────────────────────────────────────────── */
+
+body.scorebug.is-pregame {
+  border: 2px solid var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent-glow),
+    0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.is-pregame .status-score,
+body.is-pregame .status-count,
+body.is-pregame .linescore {
+  display: none !important;
+}
+
+body.is-pregame .team-logo {
+  width: 96px;
+  height: 96px;
+}
+
+body.is-pregame .score-row {
+  padding: var(--space-xl) 0;
+  gap: var(--space-lg);
+}
+
+body.is-pregame .status-block {
+  gap: var(--space-md);
+}
+
+/* ── State: live ───────────────────────────────────────────────── */
+/* (reserved — fills in during Phase 2b) */
+
+/* ── State: final ──────────────────────────────────────────────── */
+/* (reserved — fills in during Phase 2c) */
